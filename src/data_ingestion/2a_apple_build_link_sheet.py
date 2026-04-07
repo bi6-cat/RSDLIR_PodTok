@@ -17,7 +17,7 @@ USER_AGENTS = [
 ]
 
 # Cấu hình thư mục
-DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
+DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data")
 CONFIG_DIR = os.path.join(DATA_DIR, "config")
 CSV_FILE = os.path.join(DATA_DIR, "2_apple_podcast_links.csv")
 

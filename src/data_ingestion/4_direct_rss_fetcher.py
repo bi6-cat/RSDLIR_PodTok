@@ -4,7 +4,7 @@ import urllib.request
 import xml.etree.ElementTree as ET
 
 # Cấu hình thư mục
-DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
+DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data")
 CONFIG_DIR = os.path.join(DATA_DIR, "config")
 AUDIO_DIR = os.path.join(DATA_DIR, "raw_audio", "4_direct_rss")
 METADATA_FILE = os.path.join(DATA_DIR, "4_direct_rss_metadata.json")

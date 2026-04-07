@@ -4,7 +4,7 @@ import yt_dlp
 from typing import List, Dict
 
 # Cấu hình thư mục lưu trữ
-DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
+DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data")
 CONFIG_DIR = os.path.join(DATA_DIR, "config")
 AUDIO_DIR = os.path.join(DATA_DIR, "raw_audio", "1_youtube")
 METADATA_FILE = os.path.join(DATA_DIR, "1_youtube_metadata.json")
