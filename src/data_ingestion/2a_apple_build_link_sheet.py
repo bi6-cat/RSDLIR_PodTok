@@ -5,10 +5,20 @@ import urllib.parse
 import xml.etree.ElementTree as ET
 import csv
 import uuid
+import time
+import random
+
+# Danh sách User-Agents giả mạo để chống chặn
+USER_AGENTS = [
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/119.0',
+    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36'
+]
 
 # Cấu hình thư mục
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
-CSV_FILE = os.path.join(DATA_DIR, "podcast_links_sheet.csv")
+CSV_FILE = os.path.join(DATA_DIR, "2_apple_podcast_links.csv")
 
 os.makedirs(DATA_DIR, exist_ok=True)
 
@@ -17,7 +27,9 @@ def search_apple_podcasts(keyword, limit=3):
     safe_keyword = urllib.parse.quote(keyword)
     url = f"https://itunes.apple.com/search?term={safe_keyword}&media=podcast&limit={limit}"
     
-    req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+    # Chọn random User-Agent
+    headers = {'User-Agent': random.choice(USER_AGENTS)}
+    req = urllib.request.Request(url, headers=headers)
     try:
         with urllib.request.urlopen(req) as response:
             data = json.loads(response.read().decode('utf-8'))
@@ -55,7 +67,8 @@ def build_csv_sheet(keywords, max_channels=3, max_episodes=5):
                 podcast_name = feed_info['collectionName']
                 
                 try:
-                    req = urllib.request.Request(feed_url, headers={'User-Agent': 'Mozilla/5.0'})
+                    headers = {'User-Agent': random.choice(USER_AGENTS)}
+                    req = urllib.request.Request(feed_url, headers=headers)
                     with urllib.request.urlopen(req) as response:
                         xml_data = response.read()
                         
@@ -77,16 +90,32 @@ def build_csv_sheet(keywords, max_channels=3, max_episodes=5):
                         writer.writerow([unique_id, keyword, podcast_name, title, mp3_url])
                         print(f"   ➕ Đã thêm vào Sheet: {title[:50]}...")
                         
+                    # Chống chặn IP (Anti-ban) sau khi scrape mỗi RSS Feed
+                    # Nghỉ ngẫu nhiên 2 - 5 giây
+                    sleep_time = random.uniform(2.0, 5.0)
+                    print(f"   ⏳ Nghỉ {sleep_time:.1f}s để tránh bị block IP...")
+                    time.sleep(sleep_time)
+                        
                 except Exception as e:
                     print(f"   ❌ Lỗi đọc feed {podcast_name}: {e}")
 
-    print(f"\n🎉 HOÀN TẤT! Hãy mở file `data/podcast_links_sheet.csv` bằng Excel hoặc VS Code.")
+    print(f"\n🎉 HOÀN TẤT! Hãy mở file `data/2_apple_podcast_links.csv` bằng Excel hoặc VS Code.")
     print("👉 Xóa những dòng bạn KHÔNG CHỌN, lưu lại, sau đó chạy script tải Audio!")
 
 if __name__ == "__main__":
-    # Điền chủ đề bạn muốn cào link
-    KWS = ["tâm lý học", "phát triển bản thân", "giáo dục", "tài chính"]
+    # Đọc từ khóa từ file
+    KEYWORDS_FILE = os.path.join(DATA_DIR, "2_3_apple_keywords.txt")
+    if not os.path.exists(KEYWORDS_FILE):
+        with open(KEYWORDS_FILE, 'w', encoding='utf-8') as f:
+            f.write("tâm lý học\nphát triển bản thân\ngiáo dục\ntài chính\n")
+        print(f"Đã tạo file mẫu tại {KEYWORDS_FILE}. Vui lòng cập nhật từ khóa trong file.")
+        
+    with open(KEYWORDS_FILE, 'r', encoding='utf-8') as f:
+        KWS = [line.strip() for line in f if line.strip() and not line.startswith('#')]
     
-    # max_channels: Số kênh lấy cho mỗi chủ đề
-    # max_episodes: Số tập lấy cho mỗi kênh
-    build_csv_sheet(KWS, max_channels=2, max_episodes=3)
+    if not KWS:
+        print(f"File {KEYWORDS_FILE} trống. Vui lòng thêm từ khóa.")
+    else:
+        # max_channels: Số kênh lấy cho mỗi chủ đề
+        # max_episodes: Số tập lấy cho mỗi kênh
+        build_csv_sheet(KWS, max_channels=2, max_episodes=3)

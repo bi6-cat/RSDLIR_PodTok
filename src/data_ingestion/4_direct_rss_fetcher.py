@@ -70,8 +70,18 @@ def fetch_sample_from_rss(rss_url, limit=1):
         print(f"❌ Lỗi: {str(e)}")
 
 if __name__ == "__main__":
-    # Nguồn RSS Podcast Tiếng Anh cực ngắn và sạch (NPR TED Radio Hour)
-    # Rất phù hợp để test luồng AI vì nó chuẩn giọng studio, file tải nhanh gọn.
-    SAMPLE_RSS = "https://feeds.npr.org/510298/podcast.xml"
-    
-    fetch_sample_from_rss(SAMPLE_RSS, limit=1)
+    # Đọc link RSS từ file
+    RSS_FILE = os.path.join(DATA_DIR, "4_rss_links.txt")
+    if not os.path.exists(RSS_FILE):
+        with open(RSS_FILE, 'w', encoding='utf-8') as f:
+            f.write("https://feeds.npr.org/510298/podcast.xml\n")
+        print(f"Đã tạo file mẫu tại {RSS_FILE}. Vui lòng cập nhật link trong file này.")
+        
+    with open(RSS_FILE, 'r', encoding='utf-8') as f:
+        rss_links = [line.strip() for line in f if line.strip() and not line.startswith('#')]
+
+    if not rss_links:
+        print(f"File {RSS_FILE} trống. Vui lòng thêm link RSS.")
+    else:
+        for rss in rss_links:
+            fetch_sample_from_rss(rss, limit=1)

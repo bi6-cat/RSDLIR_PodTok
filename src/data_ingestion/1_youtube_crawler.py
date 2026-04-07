@@ -31,6 +31,9 @@ def get_ytdlp_opts(output_dir: str) -> dict:
             '-ac', '1'
         ],
         'playlist_items': '1-5', # CHỈ TẢI 5 TẬP MỚI NHẤT TRONG PLAYLIST
+        'sleep_requests': 2.5, # Chống chặn IP (rate limit) từ Youtube
+        'max_sleep_interval': 15, # Khoảng thời gian ngủ tối đa
+        'sleep_interval': 5, # Giãn cách random giữa các file từ 5 -> 15 giây
         'extract_flat': False,
         'quiet': False,
         'no_warnings': True,
@@ -92,15 +95,20 @@ def download_podcasts(urls: List[str]) -> List[Dict]:
     return metadata_list
 
 if __name__ == "__main__":
-    # CHỈ CẦN THẢ LINK PLAYLIST VÀO ĐÂY LÀ TOOL TỰ KÉO TOÀN BỘ CÁC TẬP!
-    sample_urls = [
-        # Playlist: Have A Sip (Vietcetera) - Chọn ra 5 tập mới nhất
-        "https://www.youtube.com/playlist?list=PLLoEwO2Vv1F28vB7sPzexA0YttN1G7Ld9",
-        # Playlist: Bạn đang làm gì thế? (The Present Writer) - 5 tập mới nhất
-        "https://www.youtube.com/playlist?list=PL_If5XqH_t41-Yv9jDIn90uN7I-pM3K5n",
-        # Kênh Tri Kỷ Cảm Xúc (Sẽ quét 5 video mới nhất của kênh)
-        "https://www.youtube.com/@Web5Ngay/videos"
-    ]
+    # Đọc link từ file
+    URLS_FILE = os.path.join(DATA_DIR, "1_youtube_urls.txt")
+    if not os.path.exists(URLS_FILE):
+        with open(URLS_FILE, 'w', encoding='utf-8') as f:
+            f.write("https://www.youtube.com/playlist?list=PLLoEwO2Vv1F28vB7sPzexA0YttN1G7Ld9\n")
+            f.write("https://www.youtube.com/playlist?list=PL_If5XqH_t41-Yv9jDIn90uN7I-pM3K5n\n")
+            f.write("https://www.youtube.com/@Web5Ngay/videos\n")
+        print(f"Đã tạo file mẫu tại {URLS_FILE}. Vui lòng cập nhật link trong file này.")
+        
+    with open(URLS_FILE, 'r', encoding='utf-8') as f:
+        sample_urls = [line.strip() for line in f if line.strip() and not line.startswith('#')]
     
-    print("🚀 BẮT ĐẦU CRAWL PLAYLIST PODCAST DỮ LIỆU PHASE 1...")
-    download_podcasts(sample_urls)
+    if not sample_urls:
+        print(f"File {URLS_FILE} trống. Vui lòng thêm link.")
+    else:
+        print("🚀 BẮT ĐẦU CRAWL PLAYLIST PODCAST DỮ LIỆU PHASE 1...")
+        download_podcasts(sample_urls)

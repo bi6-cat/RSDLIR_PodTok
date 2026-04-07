@@ -111,20 +111,25 @@ def fetch_episodes_from_rss(rss_list, max_episodes_per_feed=2):
             print(f"   ❌ Lỗi khi đọc feed của {podcast_name}: {e}")
 
 if __name__ == "__main__":
-    # KHÔNG CẦN LINK NỮA! CHỈ CẦN GÕ CHỦ ĐỀ BẠN MUỐN:
-    keywords = [
-        "tâm lý học",
-        "phát triển bản thân", 
-        "khởi nghiệp",
-        "technology podcast"
-    ]
-    
-    for keyword in keywords:
-        # 1. Tự động mượn API Apple để tìm 2 kênh hot nhất cho mỗi chủ đề
-        discovered_feeds = search_apple_podcasts(keyword, limit=2)
+    # Đọc từ khóa từ file
+    KEYWORDS_FILE = os.path.join(DATA_DIR, "2_3_apple_keywords.txt")
+    if not os.path.exists(KEYWORDS_FILE):
+        with open(KEYWORDS_FILE, 'w', encoding='utf-8') as f:
+            f.write("tâm lý học\nphát triển bản thân\nkhởi nghiệp\ntechnology podcast\n")
+        print(f"Đã tạo file mẫu tại {KEYWORDS_FILE}. Vui lòng cập nhật từ khóa trong file.")
         
-        if discovered_feeds:
-            # 2. Tự động quét RSS của các kênh đó và tải 2 tập mới nhất về
-            fetch_episodes_from_rss(discovered_feeds, max_episodes_per_feed=2)
+    with open(KEYWORDS_FILE, 'r', encoding='utf-8') as f:
+        keywords = [line.strip() for line in f if line.strip() and not line.startswith('#')]
+        
+    if not keywords:
+        print(f"File {KEYWORDS_FILE} trống. Vui lòng thêm từ khóa.")
+    else:
+        for keyword in keywords:
+            # 1. Tự động mượn API Apple để tìm 2 kênh hot nhất cho mỗi chủ đề
+            discovered_feeds = search_apple_podcasts(keyword, limit=2)
             
-    print("\n🎉 HOÀN TẤT CHIẾN DỊCH CÀO DỮ LIỆU TỰ ĐỘNG TỪ APPLE PODCASTS!")
+            if discovered_feeds:
+                # 2. Tự động quét RSS của các kênh đó và tải 2 tập mới nhất về
+                fetch_episodes_from_rss(discovered_feeds, max_episodes_per_feed=2)
+                
+        print("\n🎉 HOÀN TẤT CHIẾN DỊCH CÀO DỮ LIỆU TỰ ĐỘNG TỪ APPLE PODCASTS!")
