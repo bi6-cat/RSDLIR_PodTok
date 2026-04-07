@@ -3,23 +3,24 @@ import csv
 import json
 import urllib.request
 import time
+import argparse
 
 # Cấu hình thư mục
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data")
-CSV_FILE = os.path.join(DATA_DIR, "2_apple_podcast_links.csv")
 AUDIO_DIR = os.path.join(DATA_DIR, "raw_audio", "2_apple_sheet")
 METADATA_FILE = os.path.join(DATA_DIR, "2_apple_sheet_metadata.json")
 
 os.makedirs(AUDIO_DIR, exist_ok=True)
 
-def download_audio_from_csv():
+def download_audio_from_csv(csv_filename="2_apple_podcast_links.csv"):
     """
     Đọc file CSV (chứa các links bạn ĐÃ CHỌN).
     Tiến hành tải file mp3 xuống máy.
     """
-    if not os.path.exists(CSV_FILE):
-        print(f"❌ KHÔNG TÌM THẤY {CSV_FILE}!")
-        print("Hãy chạy lệnh `1_build_link_sheet.py` để tạo sheet trước.")
+    csv_file_path = os.path.join(DATA_DIR, csv_filename)
+    if not os.path.exists(csv_file_path):
+        print(f"❌ KHÔNG TÌM THẤY {csv_file_path}!")
+        print("Hãy chạy lệnh `1_build_link_sheet.py` (hoặc check lại file đã chia nhỏ) trước.")
         return
 
     metadata_list = []
@@ -32,10 +33,10 @@ def download_audio_from_csv():
         except json.JSONDecodeError:
             pass
 
-    print(f"🚀 BẮT ĐẦU TẢI MP3 TỪ SHEET: {CSV_FILE}")
+    print(f"🚀 BẮT ĐẦU TẢI MP3 TỪ SHEET: {csv_file_path}")
     
     # Đếm số dòng để lấy số lượng
-    with open(CSV_FILE, mode='r', encoding='utf-8') as file:
+    with open(csv_file_path, mode='r', encoding='utf-8') as file:
         reader = csv.DictReader(file)
         rows = list(reader)
         
@@ -100,4 +101,9 @@ def download_audio_from_csv():
     print("Bây giờ bạn có thể gọi AI Whisper chạy mốc thời gian!")
 
 if __name__ == "__main__":
-    download_audio_from_csv()
+    parser = argparse.ArgumentParser(description='Tải audio từ file CSV.')
+    parser.add_argument('--csv', type=str, default='2_apple_podcast_links.csv', 
+                        help='Tên file chứa links CSV (ví dụ: 2_apple_podcast_links_part01.csv)')
+    args = parser.parse_args()
+    
+    download_audio_from_csv(csv_filename=args.csv)
