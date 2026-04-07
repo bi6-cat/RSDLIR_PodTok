@@ -115,8 +115,8 @@ if __name__ == "__main__":
     KEYWORDS_FILE = os.path.join(DATA_DIR, "2_3_apple_keywords.txt")
     if not os.path.exists(KEYWORDS_FILE):
         with open(KEYWORDS_FILE, 'w', encoding='utf-8') as f:
-            f.write("tâm lý học\nphát triển bản thân\nkhởi nghiệp\ntechnology podcast\n")
-        print(f"Đã tạo file mẫu tại {KEYWORDS_FILE}. Vui lòng cập nhật từ khóa trong file.")
+            pass # Chỉ tạo file trống
+        print(f"Đã tạo file trống tại {KEYWORDS_FILE}. Vui lòng thêm từ khóa vào file này rồi chạy lại.")
         
     with open(KEYWORDS_FILE, 'r', encoding='utf-8') as f:
         keywords = [line.strip() for line in f if line.strip() and not line.startswith('#')]

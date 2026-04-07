@@ -74,8 +74,8 @@ if __name__ == "__main__":
     RSS_FILE = os.path.join(DATA_DIR, "4_rss_links.txt")
     if not os.path.exists(RSS_FILE):
         with open(RSS_FILE, 'w', encoding='utf-8') as f:
-            f.write("https://feeds.npr.org/510298/podcast.xml\n")
-        print(f"Đã tạo file mẫu tại {RSS_FILE}. Vui lòng cập nhật link trong file này.")
+            pass # Chỉ tạo file trống
+        print(f"Đã tạo file trống tại {RSS_FILE}. Vui lòng thêm link RSS XML vào file này rồi chạy lại.")
         
     with open(RSS_FILE, 'r', encoding='utf-8') as f:
         rss_links = [line.strip() for line in f if line.strip() and not line.startswith('#')]

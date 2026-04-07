@@ -99,10 +99,8 @@ if __name__ == "__main__":
     URLS_FILE = os.path.join(DATA_DIR, "1_youtube_urls.txt")
     if not os.path.exists(URLS_FILE):
         with open(URLS_FILE, 'w', encoding='utf-8') as f:
-            f.write("https://www.youtube.com/playlist?list=PLLoEwO2Vv1F28vB7sPzexA0YttN1G7Ld9\n")
-            f.write("https://www.youtube.com/playlist?list=PL_If5XqH_t41-Yv9jDIn90uN7I-pM3K5n\n")
-            f.write("https://www.youtube.com/@Web5Ngay/videos\n")
-        print(f"Đã tạo file mẫu tại {URLS_FILE}. Vui lòng cập nhật link trong file này.")
+            pass # Chỉ tạo file trống
+        print(f"Đã tạo file trống tại {URLS_FILE}. Vui lòng thêm link YouTube vào file này rồi chạy lại.")
         
     with open(URLS_FILE, 'r', encoding='utf-8') as f:
         sample_urls = [line.strip() for line in f if line.strip() and not line.startswith('#')]
