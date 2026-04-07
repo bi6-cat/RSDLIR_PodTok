@@ -7,10 +7,12 @@ import time
 
 # Cấu hình thư mục
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
+CONFIG_DIR = os.path.join(DATA_DIR, "config")
 AUDIO_DIR = os.path.join(DATA_DIR, "raw_audio", "3_apple_auto_discover")
 METADATA_FILE = os.path.join(DATA_DIR, "3_apple_auto_metadata.json")
 
 os.makedirs(AUDIO_DIR, exist_ok=True)
+os.makedirs(CONFIG_DIR, exist_ok=True)
 
 def search_apple_podcasts(keyword, limit=5):
     """
@@ -112,7 +114,7 @@ def fetch_episodes_from_rss(rss_list, max_episodes_per_feed=2):
 
 if __name__ == "__main__":
     # Đọc từ khóa từ file
-    KEYWORDS_FILE = os.path.join(DATA_DIR, "2_3_apple_keywords.txt")
+    KEYWORDS_FILE = os.path.join(CONFIG_DIR, "2_3_apple_keywords.txt")
     if not os.path.exists(KEYWORDS_FILE):
         with open(KEYWORDS_FILE, 'w', encoding='utf-8') as f:
             pass # Chỉ tạo file trống

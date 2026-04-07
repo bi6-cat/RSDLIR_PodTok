@@ -46,7 +46,7 @@ Tạo ô code (Cell) mới và dán vào:
 ## Bước 4: Chỉnh sửa file data cấu hình ngay trên Colab
 Bạn KHÔNG cần mở code editor phức tạp. Colab có màn hình quản lý file ở cạnh trái:
 1. Bạn nhìn sang **cột bên trái** màn hình Colab, bấm vào icon **Folder (Tìm kiếm tệp)**.
-2. Điều hướng vào thư mục `drive/MyDrive/RSDLIR_PodTok/data/`.
+2. Điều hướng vào thư mục `drive/MyDrive/RSDLIR_PodTok/data/config/`.
 3. Nháy đúp vào các file Text như `1_youtube_urls.txt`, `2_3_apple_keywords.txt`... để chỉnh sửa link/từ khoá.
 4. Nhấn `Ctrl + S` (hoặc `Cmd + S`) để lưu ngay trên trình duyệt colab.
 

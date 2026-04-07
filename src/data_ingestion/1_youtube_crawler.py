@@ -5,11 +5,13 @@ from typing import List, Dict
 
 # Cấu hình thư mục lưu trữ
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
+CONFIG_DIR = os.path.join(DATA_DIR, "config")
 AUDIO_DIR = os.path.join(DATA_DIR, "raw_audio", "1_youtube")
 METADATA_FILE = os.path.join(DATA_DIR, "1_youtube_metadata.json")
 
 # Đảm bảo thư mục tồn tại
 os.makedirs(AUDIO_DIR, exist_ok=True)
+os.makedirs(CONFIG_DIR, exist_ok=True)
 
 def get_ytdlp_opts(output_dir: str) -> dict:
     """
@@ -106,7 +108,7 @@ def download_podcasts(urls: List[str]) -> List[Dict]:
 
 if __name__ == "__main__":
     # Đọc link từ file
-    URLS_FILE = os.path.join(DATA_DIR, "1_youtube_urls.txt")
+    URLS_FILE = os.path.join(CONFIG_DIR, "1_youtube_urls.txt")
     if not os.path.exists(URLS_FILE):
         with open(URLS_FILE, 'w', encoding='utf-8') as f:
             pass # Chỉ tạo file trống

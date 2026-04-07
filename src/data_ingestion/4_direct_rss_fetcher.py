@@ -5,10 +5,12 @@ import xml.etree.ElementTree as ET
 
 # Cấu hình thư mục
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
+CONFIG_DIR = os.path.join(DATA_DIR, "config")
 AUDIO_DIR = os.path.join(DATA_DIR, "raw_audio", "4_direct_rss")
 METADATA_FILE = os.path.join(DATA_DIR, "4_direct_rss_metadata.json")
 
 os.makedirs(AUDIO_DIR, exist_ok=True)
+os.makedirs(CONFIG_DIR, exist_ok=True)
 
 def fetch_sample_from_rss(rss_url, limit=1):
     """
@@ -71,7 +73,7 @@ def fetch_sample_from_rss(rss_url, limit=1):
 
 if __name__ == "__main__":
     # Đọc link RSS từ file
-    RSS_FILE = os.path.join(DATA_DIR, "4_rss_links.txt")
+    RSS_FILE = os.path.join(CONFIG_DIR, "4_rss_links.txt")
     if not os.path.exists(RSS_FILE):
         with open(RSS_FILE, 'w', encoding='utf-8') as f:
             pass # Chỉ tạo file trống

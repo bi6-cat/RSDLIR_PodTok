@@ -18,9 +18,11 @@ USER_AGENTS = [
 
 # Cấu hình thư mục
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
+CONFIG_DIR = os.path.join(DATA_DIR, "config")
 CSV_FILE = os.path.join(DATA_DIR, "2_apple_podcast_links.csv")
 
 os.makedirs(DATA_DIR, exist_ok=True)
+os.makedirs(CONFIG_DIR, exist_ok=True)
 
 def search_apple_podcasts(keyword, limit=3):
     print(f"🔍 Đang tìm podcast về: '{keyword}'...")
@@ -104,7 +106,7 @@ def build_csv_sheet(keywords, max_channels=3, max_episodes=5):
 
 if __name__ == "__main__":
     # Đọc từ khóa từ file
-    KEYWORDS_FILE = os.path.join(DATA_DIR, "2_3_apple_keywords.txt")
+    KEYWORDS_FILE = os.path.join(CONFIG_DIR, "2_3_apple_keywords.txt")
     if not os.path.exists(KEYWORDS_FILE):
         with open(KEYWORDS_FILE, 'w', encoding='utf-8') as f:
             pass # Chỉ tạo file trống
