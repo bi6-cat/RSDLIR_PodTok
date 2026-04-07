@@ -13,11 +13,16 @@ Tài liệu này mô tả chi tiết pipeline thu thập, xử lý dữ liệu v
 *   **Định dạng tải về:** Cấu hình trích xuất tệp `.m4a` hoặc `.mp3`, Sample rate: `16 kHz` (chuẩn đầu vào tốt nhất cho Whisper và Wav2Vec), Mono channel.
 
 ### Bước 1.2: Phân đoạn (Segmentation / Chunking)
-*   **Công cụ:** `pyannote.audio` (cho Voice Activity Detection - VAD) và `librosa` / `pydub`.
+*   **Công cụ:** `FFmpeg` (Pre-cut), `pyannote.audio` (cho Voice Activity Detection - VAD) và `librosa` / `pydub`.
 *   **Quy trình:**
-    1.  Dạy VAD quét loại bỏ khoảng lặng dài > 2 giây và nhạc nền không có tiếng người.
-    2.  Dùng Whisper lấy timestamps thô.
-    3.  Dựa vào dấu câu cuối dấy (dấu chấm, phẩy), cắt audio thành các đoạn có độ dài ngẫu nhiên từ `30s đến 45s`.
+    1.  **Pre-cut Tối ưu (Core Segment Extraction):** Áp dụng thuật toán nhảy cóc tránh Intro/Ads để lấy 10 phút phần "Lõi" (Core) có giá trị cao nhất:
+        * Dưới 10 phút: Giữ nguyên.
+        * Từ 10 - 45 phút: Bỏ qua 1/3 thời lượng đầu. (VD: Podcast 30 phút -> Cắt từ 10:00 -> 20:00).
+        * Lớn hơn 45 phút: Quảng cáo, chitchat cùng lắm kéo dài 15 phút. Bỏ qua cứng 15 phút đầu. (VD: Podcast 2h -> Cắt từ 15:00 -> 25:00).
+        Việc này giúp LLM và Whisper bám trúng ngay vào phần Deep Talk, loại bỏ hoàn toàn các reel lỗi có nội dung chào hỏi.
+    2.  Dạy VAD quét trên file 10 phút này để loại bỏ khoảng lặng dài > 2 giây và nhạc nền không có tiếng người.
+    3.  Dùng Whisper lấy timestamps thô.
+    4.  Dựa vào dấu câu cuối dấy (dấu chấm, phẩy), cắt audio thành các đoạn ngắn (Reel) có độ dài ngẫu nhiên từ `30s đến 45s`.
 
 ---
 

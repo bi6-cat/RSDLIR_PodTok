@@ -104,9 +104,10 @@ Sử dụng Celery worker kết hợp queue (RabbitMQ) để quản lý luồng 
 ### 4.1. Luồng Cập nhật Nội dung Sinh tự động (Offline Flow)
 1. Crawl/Tải MP3 từ YouTube hoặc RSS Podcast qua yt-dlp.
 2. Đẩy vào Queue. Worker lấy audio thô thực hiện chuẩn hóa (128kbps, Mono).
-3. Cắt audio thành file nhỏ (chunks), lưu lên S3/MinIO.
-4. Chạy mô hình AI trích xuất Caption, Sentiment.
-5. Merge (hợp nhất) thành một Vector tổng hợp, Insert vào Milvus VectorDB và MongoDB.
+3. Pre-cut (Tối ưu hóa Core Segment): Tính toán tổng thời lượng, bỏ qua intro dài/quảng cáo. Tự động cắt nhảy cóc tới phần "Lõi" của podcast và lấy 10 phút đại diện (bằng FFmpeg) để nạp vào AI.
+4. Phân đoạn: Quét Voice Activity Detection (VAD) đoạn 10 phút trên và cắt thành các file Reel ngắn (30s - 45s), lưu lên S3/MinIO.
+5. Chạy mô hình AI trích xuất Caption, Sentiment trên các Reel này.
+6. Merge (hợp nhất) thành một Vector tổng hợp, Insert vào Milvus VectorDB và MongoDB.
 
 ### 4.2. Luồng Khám phá Thời gian thực (Real-time Online Flow)
 1. App gửi Log lướt/vuốt: POST /api/v1/track kèm { "session_id": "xxx", "item_id": "A_01", "watch_time": 20 }.
