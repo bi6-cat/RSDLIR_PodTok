@@ -88,9 +88,9 @@ def download_audio_from_csv():
                 
             print(f"   ✅ [THÀNH CÔNG] Đã lưu file: {file_name}")
             
-            # Anti-ban (Chống bị khóa IP): Ngủ một khoảng thời gian ngẫu nhiên 2-5 giây
+            # Anti-ban (Chống bị khóa IP): Ngủ một khoảng thời gian ngẫu nhiên 1-2 giây (đã giảm)
             import random
-            sleep_time = random.uniform(2.0, 5.0)
+            sleep_time = random.uniform(1.0, 2.0)
             time.sleep(sleep_time) 
             
         except Exception as e:

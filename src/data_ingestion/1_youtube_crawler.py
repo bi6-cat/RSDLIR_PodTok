@@ -31,9 +31,9 @@ def get_ytdlp_opts(output_dir: str) -> dict:
             '-ac', '1'
         ],
         'playlist_items': '1-5', # CHỈ TẢI 5 TẬP MỚI NHẤT TRONG PLAYLIST
-        'sleep_requests': 2.5, # Chống chặn IP (rate limit) từ Youtube
-        'max_sleep_interval': 15, # Khoảng thời gian ngủ tối đa
-        'sleep_interval': 5, # Giãn cách random giữa các file từ 5 -> 15 giây
+        'sleep_requests': 1.0, # Chống chặn IP (rate limit) từ Youtube - Đã giảm
+        'max_sleep_interval': 5, # Khoảng thời gian ngủ tối đa - Đã giảm
+        'sleep_interval': 2, # Giãn cách random giữa các file từ 2 -> 5 giây
         'extract_flat': False,
         'quiet': False,
         'no_warnings': True,
@@ -57,37 +57,46 @@ def download_podcasts(urls: List[str]) -> List[Dict]:
         for url in urls:
             try:
                 print(f"\nĐang xử lý URL: {url}")
-                # Trích xuất thông tin trước
-                info_dict = ydl.extract_info(url, download=False)
+                # Trích xuất thông tin VÀ tự động tải
+                info_dict = ydl.extract_info(url, download=True)
                 if not info_dict:
                     continue
                 
-                video_id = info_dict.get('id')
-                if video_id in downloaded_ids:
-                    print(f"Bỏ qua (đã tải): {video_id} - {info_dict.get('title')}")
-                    continue
-                
-                # Tiến hành download thực tế
-                ydl.download([url])
-                
-                # Lưu Metadata
-                meta = {
-                    "_id": video_id,
-                    "title": info_dict.get('title'),
-                    "host": info_dict.get('uploader'),
-                    "duration": info_dict.get('duration'), # seconds
-                    "source_url": url,
-                    "view_count": info_dict.get('view_count'),
-                    "upload_date": info_dict.get('upload_date'),
-                    "audio_file": f"{video_id}.mp3"
-                }
-                metadata_list.append(meta)
-                print(f"Đã lưu thành công: {meta['title']}")
+                # Kiểm tra xem đây là playlist hay video đơn
+                videos_to_process = []
+                if 'entries' in info_dict:
+                    # Là Playlist hoặc Kênh: Lấy danh sách các video bên trong
+                    videos_to_process = [entry for entry in info_dict['entries'] if entry is not None]
+                else:
+                    # Là Video đơn
+                    videos_to_process = [info_dict]
+                    
+                for video_info in videos_to_process:
+                    video_id = video_info.get('id')
+                    
+                    if video_id in downloaded_ids:
+                        print(f"Bỏ qua ghi metadata (đã có): {video_id}")
+                        continue
+                    
+                    # Lưu Metadata cho từng video (từng tập podcast)
+                    meta = {
+                        "_id": video_id,
+                        "title": video_info.get('title'),
+                        "host": video_info.get('uploader') or info_dict.get('uploader'),
+                        "duration": video_info.get('duration'), # seconds
+                        "source_url": video_info.get('webpage_url') or f"https://www.youtube.com/watch?v={video_id}",
+                        "view_count": video_info.get('view_count'),
+                        "upload_date": video_info.get('upload_date'),
+                        "audio_file": f"{video_id}.mp3"
+                    }
+                    metadata_list.append(meta)
+                    downloaded_ids.add(video_id)
+                    print(f"✅ Đã lưu metadata: {meta['title']}")
                 
             except Exception as e:
-                print(f"Lỗi khi tải {url}: {str(e)}")
+                print(f"❌ Lỗi khi tải {url}: {str(e)}")
                 
-    # Lưu lại file JSON
+    # Lưu lại file JSON sau mỗi lượt tải playlist
     with open(METADATA_FILE, 'w', encoding='utf-8') as f:
         json.dump(metadata_list, f, ensure_ascii=False, indent=4)
         

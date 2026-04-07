@@ -91,8 +91,8 @@ def build_csv_sheet(keywords, max_channels=3, max_episodes=5):
                         print(f"   ➕ Đã thêm vào Sheet: {title[:50]}...")
                         
                     # Chống chặn IP (Anti-ban) sau khi scrape mỗi RSS Feed
-                    # Nghỉ ngẫu nhiên 2 - 5 giây
-                    sleep_time = random.uniform(2.0, 5.0)
+                    # Nghỉ ngẫu nhiên 1 - 2 giây (đã giảm)
+                    sleep_time = random.uniform(1.0, 2.0)
                     print(f"   ⏳ Nghỉ {sleep_time:.1f}s để tránh bị block IP...")
                     time.sleep(sleep_time)
                         
