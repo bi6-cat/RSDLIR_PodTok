@@ -24,7 +24,7 @@ CSV_FILE = os.path.join(DATA_DIR, "2_apple_podcast_links.csv")
 os.makedirs(DATA_DIR, exist_ok=True)
 os.makedirs(CONFIG_DIR, exist_ok=True)
 
-def search_apple_podcasts(keyword, limit=3):
+def search_apple_podcasts(keyword, limit=25):
     print(f"🔍 Đang tìm podcast về: '{keyword}'...")
     safe_keyword = urllib.parse.quote(keyword)
     url = f"https://itunes.apple.com/search?term={safe_keyword}&media=podcast&limit={limit}"
@@ -48,7 +48,7 @@ def search_apple_podcasts(keyword, limit=3):
         print(f"❌ Lỗi: {e}")
         return []
 
-def build_csv_sheet(keywords, max_channels=3, max_episodes=5):
+def build_csv_sheet(keywords, max_channels=25, max_episodes=5):
     """
     Quét RSS và đẩy tất cả thông tin/Links tìm được vào 1 file CSV.
     KHÔNG download audio ở bước này.
@@ -120,4 +120,4 @@ if __name__ == "__main__":
     else:
         # max_channels: Số kênh lấy cho mỗi chủ đề
         # max_episodes: Số tập lấy cho mỗi kênh
-        build_csv_sheet(KWS, max_channels=2, max_episodes=3)
+        build_csv_sheet(KWS, max_channels=25, max_episodes=5)
