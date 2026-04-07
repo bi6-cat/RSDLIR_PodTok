@@ -7,8 +7,8 @@ import time
 
 # Cấu hình thư mục
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
-AUDIO_DIR = os.path.join(DATA_DIR, "raw_audio_mass")
-METADATA_FILE = os.path.join(DATA_DIR, "mass_podcasts_metadata.json")
+AUDIO_DIR = os.path.join(DATA_DIR, "raw_audio", "3_apple_auto_discover")
+METADATA_FILE = os.path.join(DATA_DIR, "3_apple_auto_metadata.json")
 
 os.makedirs(AUDIO_DIR, exist_ok=True)
 

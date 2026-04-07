@@ -5,8 +5,8 @@ from typing import List, Dict
 
 # Cấu hình thư mục lưu trữ
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
-AUDIO_DIR = os.path.join(DATA_DIR, "raw_audio")
-METADATA_FILE = os.path.join(DATA_DIR, "podcasts_metadata.json")
+AUDIO_DIR = os.path.join(DATA_DIR, "raw_audio", "1_youtube")
+METADATA_FILE = os.path.join(DATA_DIR, "1_youtube_metadata.json")
 
 # Đảm bảo thư mục tồn tại
 os.makedirs(AUDIO_DIR, exist_ok=True)
@@ -19,12 +19,12 @@ def get_ytdlp_opts(output_dir: str) -> dict:
     - Sample rate 16kHz (rất quan trọng cho mô hình Whisper và Wav2Vec)
     """
     return {
-        'format': 'bestaudio/best',
+        'format': 'bestaudio[ext=m4a]/bestaudio/best', # Ưu tiên định dạng m4a siêu nhẹ thay vì webm
         'outtmpl': os.path.join(output_dir, '%(id)s.%(ext)s'),
         'postprocessors': [{
             'key': 'FFmpegExtractAudio',
             'preferredcodec': 'mp3',
-            'preferredquality': '128',
+            'preferredquality': '64', # Ép chất lượng 64kbps để file cực kỳ nhẹ, AI Whisper vẫn nghe cực rõ do là file giọng nói
         }],
         'postprocessor_args': [
             '-ar', '16000',

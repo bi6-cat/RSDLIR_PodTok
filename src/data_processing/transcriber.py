@@ -32,8 +32,15 @@ def transcribe_audio(audio_path: str, model_size: str = "small"):
     result = model.transcribe(audio_path, language="vi", fp16=False)
     
     # Lưu file chứa Timestamps
+    file_name = os.path.basename(audio_path)
     base_name = os.path.splitext(file_name)[0]
-    output_path = os.path.join(TRANSCRIPT_DIR, f"{base_name}.json")
+    
+    # Path phải được tính gộp dựa trên thư mục chạy hiện tại
+    rel_path = os.path.relpath(os.path.dirname(audio_path), AUDIO_DIR)
+    target_transcript_dir = os.path.join(TRANSCRIPT_DIR, rel_path)
+    os.makedirs(target_transcript_dir, exist_ok=True)
+    
+    output_path = os.path.join(target_transcript_dir, f"{base_name}.json")
     
     # Trích xuất dữ liệu mốc thời gian (Timestamps)
     segments_data = []
@@ -62,18 +69,32 @@ def transcribe_audio(audio_path: str, model_size: str = "small"):
     print("...")
 
 if __name__ == "__main__":
-    # Tìm tất cả các file mp3 trong raw_audio chưa được sub
-    if not os.path.exists(AUDIO_DIR) or not os.listdir(AUDIO_DIR):
-        print(f"❌ Không tìm thấy file Audio nào trong {AUDIO_DIR}. Hãy chạy Crawler trước!")
+    import glob
+    # Chạy đệ quy tìm tất cả file âm thanh trong máy (cả .mp3 và các dạng .m4a nếu có)
+    if not os.path.exists(AUDIO_DIR):
+        print(f"❌ Không tìm thấy thư mục {AUDIO_DIR}. Hãy chạy Crawler trước!")
     else:
-        audio_files = [f for f in os.listdir(AUDIO_DIR) if f.endswith(".mp3")]
-        
-        for audio_file in audio_files:
-            audio_path = os.path.join(AUDIO_DIR, audio_file)
-            transcript_path = os.path.join(TRANSCRIPT_DIR, f"{os.path.splitext(audio_file)[0]}.json")
-            
-            # Nếu chưa có file sub thì mới chạy (để tránh chạy lại mất thời gian)
-            if not os.path.exists(transcript_path):
-                transcribe_audio(audio_path, model_size="small")
-            else:
-                print(f"⏩ Bỏ qua {audio_file} - Đã có Subtitle.")
+        # Hỗ trợ nhận diện các file âm thanh đa định dạng (mp3, m4a, wav) từ các script khác nhau
+        supported_formats = ('*.mp3', '*.m4a', '*.wav')
+        audio_files = []
+        for fmt in supported_formats:
+            audio_files.extend(glob.glob(os.path.join(AUDIO_DIR, '**', fmt), recursive=True))
+
+        if not audio_files:
+            print(f"❌ Không tìm thấy file âm thanh nào bên trong {AUDIO_DIR}!")
+        else:
+            for audio_path in audio_files:
+                file_name = os.path.basename(audio_path)
+                
+                # Tạo cùng cấu trúc folder trong thư mục transcripts
+                rel_path = os.path.relpath(os.path.dirname(audio_path), AUDIO_DIR)
+                target_transcript_dir = os.path.join(TRANSCRIPT_DIR, rel_path)
+                os.makedirs(target_transcript_dir, exist_ok=True)
+                
+                transcript_path = os.path.join(target_transcript_dir, f"{os.path.splitext(file_name)[0]}.json")
+                
+                # Nếu chưa có file sub thì mới chạy
+                if not os.path.exists(transcript_path):
+                    transcribe_audio(audio_path, model_size="small")
+                else:
+                    print(f"⏩ Bỏ qua {file_name} - Đã có Subtitle.")
