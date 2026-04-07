@@ -1,8 +1,18 @@
+# --- GPU Acceleration (Nvidia CUDA libs for faster-whisper) ---
+nvidia-cublas-cu12
+nvidia-cudnn-cu12
+
+# --- ML & Core Frameworks (Thêm cấu hình chuẩn cho Ubuntu) ---
+torch
+torchaudio
+setuptools
+wheel
+
 # --- Data Ingestion (Tải Podcast) ---
 yt-dlp>=2023.12.30
 
 # --- Data Processing (Bóc băng audio AI) ---
-openai-whisper>=20231117
+faster-whisper>=1.0.0
 
 # --- Utility Libraries (Các công cụ hỗ trợ) ---
 pandas>=2.2.0

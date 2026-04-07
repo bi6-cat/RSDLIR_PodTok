@@ -42,6 +42,11 @@ def split_audio_file(file_path: str, duration: int, start_time: int = 0):
     # Định dạng tên file đầu ra đưa vào trong thư mục _split: tenfile_split.mp3
     output_path = os.path.join(output_dir, f"{base_name}_split{ext}")
     
+    # Nếu file đã được cắt rồi thì bỏ qua không cắt lại nữa
+    if os.path.exists(output_path) and os.path.getsize(output_path) > 0:
+        print(f"⏩ Đã cắt rồi: {base_name}_split{ext} (Bỏ qua)")
+        return
+
     print(f"✂️  Đang cắt lấy {duration} giây bản split (từ giây {start_time}) file: {base_name}{ext}...")
     
     try:
@@ -53,13 +58,21 @@ def split_audio_file(file_path: str, duration: int, start_time: int = 0):
             check=True
         )
         
-        # Tạm thời khóa tính năng xóa file gốc để bạn có thể test lại nhiều lần nếu muốn
-        # Mở comment dòng dưới đây nếu bạn muốn thực sự xóa file gốc để tiết kiệm ổ cứng
-        # os.remove(file_path)
-        print(f"   ✅ Đã cắt xong bản demo và LƯU LẠI file gốc (chưa xóa)!")
+        # Kiểm tra file output có bị 0KB (lỗi ffmpeg xuất file rỗng)
+        if os.path.exists(output_path) and os.path.getsize(output_path) == 0:
+            print(f"   ❌ Lỗi cắt: File {base_name}_split{ext} sinh ra bị 0KB. Đã chuyển vào thùng rác!")
+            os.remove(output_path)
+        else:
+            # Tạm thời khóa tính năng xóa file gốc để bạn có thể test lại nhiều lần nếu muốn
+            # Mở comment dòng dưới đây nếu bạn muốn thực sự xóa file gốc để tiết kiệm ổ cứng
+            # os.remove(file_path)
+            print(f"   ✅ Đã cắt xong bản demo và LƯU LẠI file gốc (chưa xóa)!")
         
     except subprocess.CalledProcessError as e:
         print(f"   ❌ Lỗi khi cắt file {file_path}. FFmpeg error.")
+        # Xóa file lỗi rác (nếu ffmpeg đã lỡ tạo ra) để không đưa vào thư mục split
+        if os.path.exists(output_path):
+            os.remove(output_path)
 
 if __name__ == "__main__":
     print(f"🔍 Đang quét toàn bộ thư mục data để tìm các thư mục chứa raw audio...")
@@ -84,9 +97,10 @@ if __name__ == "__main__":
 
     for file_path in audio_files:
         duration = get_audio_duration(file_path)
+        file_size_kb = os.path.getsize(file_path) / 1024
         
-        # Bỏ qua các file rác quá ngắn < 2 phút (120s)
-        if duration >= 120:
+        # Bỏ qua các file rác quá ngắn < 3 phút (180s) hoặc file nhỏ < 4000KB (~4MB)
+        if duration >= 180 and file_size_kb >= 4000:
             # Thuật toán đi tìm "Phần Lõi" (Core Segment) của Podcast tránh Intro/Quảng cáo
             if duration <= DEMO_DURATION_SECONDS:
                 start_time = 0
