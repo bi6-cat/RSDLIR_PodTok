@@ -39,7 +39,7 @@ def fetch_sample_from_rss(rss_url, limit=1):
                 continue
                 
             mp3_url = enclosure.get('url')
-            video_id = f"sample_{i+1}"
+            video_id = f"rss_sample_{i+1}"
             file_name = f"{video_id}.mp3"
             file_path = os.path.join(AUDIO_DIR, file_name)
             

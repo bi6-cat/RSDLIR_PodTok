@@ -84,7 +84,7 @@ def build_csv_sheet(keywords, max_channels=3, max_episodes=5):
                             continue
                             
                         mp3_url = enclosure.get('url')
-                        unique_id = f"pod_{str(uuid.uuid4())[:8]}"
+                        unique_id = f"apple_{str(uuid.uuid4())[:8]}"
                         
                         # Ghi từng dòng vào CSV
                         writer.writerow([unique_id, keyword, podcast_name, title, mp3_url])

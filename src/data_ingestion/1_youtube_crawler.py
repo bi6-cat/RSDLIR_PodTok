@@ -20,7 +20,7 @@ def get_ytdlp_opts(output_dir: str) -> dict:
     """
     return {
         'format': 'bestaudio[ext=m4a]/bestaudio/best', # Ưu tiên định dạng m4a siêu nhẹ thay vì webm
-        'outtmpl': os.path.join(output_dir, '%(id)s.%(ext)s'),
+        'outtmpl': os.path.join(output_dir, 'yt_%(id)s.%(ext)s'),
         'postprocessors': [{
             'key': 'FFmpegExtractAudio',
             'preferredcodec': 'mp3',
@@ -72,7 +72,8 @@ def download_podcasts(urls: List[str]) -> List[Dict]:
                     videos_to_process = [info_dict]
                     
                 for video_info in videos_to_process:
-                    video_id = video_info.get('id')
+                    raw_id = video_info.get('id')
+                    video_id = f"yt_{raw_id}"
                     
                     if video_id in downloaded_ids:
                         print(f"Bỏ qua ghi metadata (đã có): {video_id}")
@@ -84,7 +85,7 @@ def download_podcasts(urls: List[str]) -> List[Dict]:
                         "title": video_info.get('title'),
                         "host": video_info.get('uploader') or info_dict.get('uploader'),
                         "duration": video_info.get('duration'), # seconds
-                        "source_url": video_info.get('webpage_url') or f"https://www.youtube.com/watch?v={video_id}",
+                        "source_url": video_info.get('webpage_url') or f"https://www.youtube.com/watch?v={raw_id}",
                         "view_count": video_info.get('view_count'),
                         "upload_date": video_info.get('upload_date'),
                         "audio_file": f"{video_id}.mp3"

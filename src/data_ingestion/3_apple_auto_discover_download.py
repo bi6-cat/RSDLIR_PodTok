@@ -81,7 +81,7 @@ def fetch_episodes_from_rss(rss_list, max_episodes_per_feed=2):
                 mp3_url = enclosure.get('url')
                 
                 total_downloaded += 1
-                video_id = f"auto_ep_{total_downloaded:04d}"
+                video_id = f"apple_auto_{total_downloaded:04d}"
                 file_name = f"{video_id}.mp3"
                 file_path = os.path.join(AUDIO_DIR, file_name)
                 
