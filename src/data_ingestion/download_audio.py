@@ -21,9 +21,13 @@ def download_audio_from_csv(csv_filename="podcast_links.csv"):
     """
     csv_file_path = os.path.join(DATA_DIR, csv_filename)
     if not os.path.exists(csv_file_path):
-        print(f"❌ KHÔNG TÌM THẤY {csv_file_path}!")
-        print("Hãy chạy lệnh `1_build_link_sheet.py` (hoặc check lại file đã chia nhỏ) trước.")
-        return
+        # Thử xem user có truyền đường dẫn tuyệt đối/tương đối ngoài DATA_DIR không
+        if os.path.exists(csv_filename):
+            csv_file_path = csv_filename
+        else:
+            print(f"❌ KHÔNG TÌM THẤY '{csv_filename}' (trong thư mục {DATA_DIR} hoặc nguyên bản)!")
+            print("Hãy kiểm tra lại tên file CSV truyền vào.")
+            return
 
     metadata_list = []
     
