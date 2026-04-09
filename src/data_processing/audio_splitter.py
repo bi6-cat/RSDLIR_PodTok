@@ -39,15 +39,15 @@ def split_audio_file(file_path: str, duration: int, start_time: int, clip_index:
     if not os.path.exists(output_dir):
         os.makedirs(output_dir, exist_ok=True)
     
-    # Định dạng tên file đầu ra: chude_1234_clip_1.mp3
-    output_path = os.path.join(output_dir, f"{base_name}_clip_{clip_index}{ext}")
+    # Định dạng tên file đầu ra: chude_1234_split.mp3
+    output_path = os.path.join(output_dir, f"{base_name}_split{ext}")
     
     # Nếu file đã được cắt rồi thì bỏ qua không cắt lại nữa
     if os.path.exists(output_path) and os.path.getsize(output_path) > 0:
-        print(f"⏩ Đã cắt rồi: {base_name}_clip_{clip_index}{ext} (Bỏ qua)")
+        print(f"⏩ Đã cắt rồi: {base_name}_split{ext} (Bỏ qua)")
         return
 
-    print(f"✂️  Đang cắt lấy {duration}s bảng clip {clip_index} (từ phút {start_time//60}) file: {base_name}{ext}...")
+    print(f"✂️  Đang cắt lấy {duration}s bản split (từ phút {start_time//60}) file: {base_name}{ext}...")
     
     try:
         # Lệnh cắt ffmpeg siêu tốc (copy codec không re-encode), lấy chuẩn thời điểm
@@ -60,10 +60,10 @@ def split_audio_file(file_path: str, duration: int, start_time: int, clip_index:
         
         # Kiểm tra file output có bị 0KB (lỗi ffmpeg xuất file rỗng)
         if os.path.exists(output_path) and os.path.getsize(output_path) == 0:
-            print(f"   ❌ Lỗi cắt: File {base_name}_clip_{clip_index}{ext} sinh ra bị 0KB. Đã xóa!")
+            print(f"   ❌ Lỗi cắt: File {base_name}_split{ext} sinh ra bị 0KB. Đã xóa!")
             os.remove(output_path)
         else:
-            print(f"   ✅ Đã cắt clip {clip_index} thành công!")
+            print(f"   ✅ Đã cắt clip split thành công!")
             
     except subprocess.CalledProcessError as e:
         print(f"   ❌ Lỗi khi cắt file {file_path}. FFmpeg error.")
@@ -95,8 +95,8 @@ if __name__ == "__main__":
         duration = get_audio_duration(file_path)
         file_size_kb = os.path.getsize(file_path) / 1024
         
-        # Tiêu chuẩn chất lượng: Audio gốc phải dài ít nhất 7 phút (420s) và lớn hơn 4MB
-        if duration >= 420 and file_size_kb >= 4000:
+        # Tiêu chuẩn chất lượng: Audio gốc phải dài ít nhất 6 phút (360s) và lớn hơn 4MB
+        if duration >= 360 and file_size_kb >= 3200:
             # Bỏ qua 10% đoạn đầu tiên hoặc tối đa 3 phút (tránh intro, lặp lời chào)
             # Lấy 1 đoạn dài (ví dụ: 15 phút) để có đủ text cho mô hình NLP đọc "Peak"
             start_point = min(180, int(duration * 0.10))
