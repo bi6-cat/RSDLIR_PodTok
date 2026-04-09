@@ -58,7 +58,7 @@ def search_apple_podcasts(keyword, limit=25):
         print(f"❌ Lỗi: {e}")
         return []
 
-def build_csv_sheet(keywords, max_channels=25, max_episodes=5):
+def build_csv_sheet(keywords, max_channels=5, max_episodes=6):
     """
     Quét RSS và đẩy tất cả thông tin/Links tìm được vào 1 file CSV.
     KHÔNG download audio ở bước này.
