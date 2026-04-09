@@ -7,12 +7,14 @@ import argparse
 
 # Cấu hình thư mục
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data")
-AUDIO_DIR = os.path.join(DATA_DIR, "raw_audio", "2_apple_sheet")
-METADATA_FILE = os.path.join(DATA_DIR, "2_apple_sheet_metadata.json")
+AUDIO_DIR = os.path.join(DATA_DIR, "raw_audio")
+IMG_DIR = os.path.join(DATA_DIR, "bg_img")
+METADATA_FILE = os.path.join(DATA_DIR, "metadata.json")
 
 os.makedirs(AUDIO_DIR, exist_ok=True)
+os.makedirs(IMG_DIR, exist_ok=True)
 
-def download_audio_from_csv(csv_filename="2_apple_podcast_links.csv"):
+def download_audio_from_csv(csv_filename="podcast_links.csv"):
     """
     Đọc file CSV (chứa các links bạn ĐÃ CHỌN).
     Tiến hành tải file mp3 xuống máy.
@@ -46,11 +48,16 @@ def download_audio_from_csv(csv_filename="2_apple_podcast_links.csv"):
         unique_id = row['ID']
         keyword = row['Keyword']
         podcast_name = row['Podcast Name']
+        host_name = row.get('Host Name', 'Unknown')
+        channel_desc = row.get('Channel Description', '')
         title = row['Episode Title']
         mp3_url = row['Audio URL']
+        image_url = row.get('Image URL', '')
         
         file_name = f"{unique_id}.mp3"
         file_path = os.path.join(AUDIO_DIR, file_name)
+        img_file_name = f"{unique_id}.jpg"
+        img_file_path = os.path.join(IMG_DIR, img_file_name)
         
         # Nếu đã tải rồi thì bỏ qua
         if os.path.exists(file_path):
@@ -72,14 +79,28 @@ def download_audio_from_csv(csv_filename="2_apple_podcast_links.csv"):
                 with open(file_path, 'wb') as out_file:
                     out_file.write(response.read())
             
+            # Tải ảnh channel nếu có
+            if image_url and not os.path.exists(img_file_path):
+                try:
+                    req_img = urllib.request.Request(image_url, headers={'User-Agent': req.headers.get('User-agent')})
+                    with urllib.request.urlopen(req_img) as response_img:
+                        with open(img_file_path, 'wb') as img_out_file:
+                            img_out_file.write(response_img.read())
+                except Exception as e:
+                    print(f"   ⚠️ Lỗi tải ảnh: {str(e)}")
+            
             # Cập nhật thông tin JSON để chạy AI bài sau
             meta = {
                 "_id": unique_id,
                 "title": title,
-                "host": podcast_name,
+                "podcast_name": podcast_name,
+                "host_name": host_name,
+                "channel_description": channel_desc,
                 "keyword": keyword,
                 "source_url": mp3_url,
-                "audio_file": file_name
+                "image_url": image_url,
+                "audio_file": file_name,
+                "image_file": img_file_name if image_url else ""
             }
             metadata_list.append(meta)
             
@@ -102,8 +123,8 @@ def download_audio_from_csv(csv_filename="2_apple_podcast_links.csv"):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Tải audio từ file CSV.')
-    parser.add_argument('--csv', type=str, default='2_apple_podcast_links.csv', 
-                        help='Tên file chứa links CSV (ví dụ: 2_apple_podcast_links_part01.csv)')
+    parser.add_argument('--csv', type=str, default='podcast_links.csv', 
+                        help='Tên file chứa links CSV (ví dụ: podcast_links.csv)')
     args = parser.parse_args()
     
     download_audio_from_csv(csv_filename=args.csv)

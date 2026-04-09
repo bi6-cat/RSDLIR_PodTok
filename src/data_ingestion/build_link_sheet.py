@@ -19,12 +19,20 @@ USER_AGENTS = [
 # Cấu hình thư mục
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data")
 CONFIG_DIR = os.path.join(DATA_DIR, "config")
-CSV_FILE = os.path.join(DATA_DIR, "2_apple_podcast_links.csv")
+CSV_FILE = os.path.join(DATA_DIR, "podcast_links.csv")
 
 os.makedirs(DATA_DIR, exist_ok=True)
 os.makedirs(CONFIG_DIR, exist_ok=True)
 
-def search_apple_podcasts(keyword, limit=1):
+import unicodedata
+import re
+
+def safe_slug(text):
+    """Chuyển đổi text có dấu thành không dấu, thay khoảng trắng thành _, loại bỏ ký tự đặc biệt"""
+    text = unicodedata.normalize('NFKD', text).encode('ASCII', 'ignore').decode('utf-8')
+    return re.sub(r'[^a-zA-Z0-9]+', '_', text).lower().strip('_')
+
+def search_apple_podcasts(keyword, limit=25):
     print(f"🔍 Đang tìm podcast về: '{keyword}'...")
     safe_keyword = urllib.parse.quote(keyword)
     url = f"https://itunes.apple.com/search?term={safe_keyword}&media=podcast&limit={limit}"
@@ -96,7 +104,8 @@ def build_csv_sheet(keywords, max_channels=25, max_episodes=5):
                             continue
                             
                         mp3_url = enclosure.get('url')
-                        unique_id = f"apple_{str(uuid.uuid4())[:8]}"
+                        kw_slug = safe_slug(keyword)
+                        unique_id = f"{kw_slug}_{str(uuid.uuid4())[:8]}"
                         
                         # Ghi từng dòng vào CSV
                         writer.writerow([unique_id, keyword, podcast_name, host_name, channel_desc, title, mp3_url, image_url])
@@ -111,12 +120,12 @@ def build_csv_sheet(keywords, max_channels=25, max_episodes=5):
                 except Exception as e:
                     print(f"   ❌ Lỗi đọc feed {podcast_name}: {e}")
 
-    print(f"\n🎉 HOÀN TẤT! Hãy mở file `data/2_apple_podcast_links.csv` bằng Excel hoặc VS Code.")
+    print(f"\n🎉 HOÀN TẤT! Hãy mở file `data/podcast_links.csv` bằng Excel hoặc VS Code.")
     print("👉 Xóa những dòng bạn KHÔNG CHỌN, lưu lại, sau đó chạy script tải Audio!")
 
 if __name__ == "__main__":
     # Đọc từ khóa từ file
-    KEYWORDS_FILE = os.path.join(CONFIG_DIR, "2_3_apple_keywords.txt")
+    KEYWORDS_FILE = os.path.join(CONFIG_DIR, "keywords.txt")
     if not os.path.exists(KEYWORDS_FILE):
         with open(KEYWORDS_FILE, 'w', encoding='utf-8') as f:
             pass # Chỉ tạo file trống
