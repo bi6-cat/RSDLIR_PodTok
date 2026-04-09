@@ -96,11 +96,11 @@ if __name__ == "__main__":
     supported_formats = ('*.mp3', '*.m4a', '*.wav')
     audio_files = []
     for fmt in supported_formats:
-        # Tìm đệ quy trong tất cả các thư mục con có chứa "_split" nằm trong DATA_DIR
-        audio_files.extend(glob.glob(os.path.join(DATA_DIR, '*_split', '**', fmt), recursive=True))
+        # Tìm đệ quy trong thư mục raw_audio_split nằm trong DATA_DIR
+        audio_files.extend(glob.glob(os.path.join(DATA_DIR, 'raw_audio_split', '**', fmt), recursive=True))
 
     if not audio_files:
-        print(f"❌ Không tìm thấy file âm thanh nào trong các thư mục *_split! Bạn đã chạy audio_splitter.py chưa?")
+        print(f"❌ Không tìm thấy file âm thanh nào trong thư mục raw_audio_split! Bạn đã chạy audio_splitter.py chưa?")
     else:
         total_files = len(audio_files)
         processed_files = 0

@@ -7,8 +7,9 @@ import math
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data")
 AUDIO_DIR = os.path.join(DATA_DIR, "raw_audio")
 
-# Cấu hình cắt file DEMO
-DEMO_DURATION_SECONDS = 600  # Lấy 10 phút đầu tiên (600 giây) của mỗi bài để đảm bảo nhận diện đúng chủ đề
+# Cấu hình cắt file (Tránh dài quá để tối ưu Model ASR)
+MAX_CHUNK_DURATION = 600  # Lấy một đoạn dài 10 phút (600 giây) để Model Text có đủ ngữ cảnh tìm điểm "Peak"
+NUM_CLIPS_PER_AUDIO = 1
 
 def get_audio_duration(file_path: str) -> float:
     """Sử dụng ffprobe để lấy độ dài file audio (đơn vị: giây)."""
@@ -25,13 +26,12 @@ def get_audio_duration(file_path: str) -> float:
         print(f"❌ Lỗi khi đọc độ dài file {file_path}: {e}")
         return 0.0
 
-def split_audio_file(file_path: str, duration: int, start_time: int = 0):
-    """Sử dụng ffmpeg để lấy một đoạn "Core Segment" của file audio cho mục đích demo."""
+def split_audio_file(file_path: str, duration: int, start_time: int, clip_index: int):
+    """Sử dụng ffmpeg để lấy một đoạn "vàng" (Core Segment) của file audio."""
     dir_name = os.path.dirname(file_path)
     base_name, ext = os.path.splitext(os.path.basename(file_path))
     
-    # Tạo thư mục output có dạng "tên_thư_mục_gốc" + "_split" (vd: raw_audio_1_split)
-    # Nó sẽ được tạo trực tiếp bên trong data/
+    # Tạo thư mục output có dạng "tên_thư_mục_gốc" + "_split" (vd: raw_audio_split)
     parent_dir = os.path.dirname(dir_name)
     current_folder_name = os.path.basename(dir_name)
     output_dir = os.path.join(parent_dir, f"{current_folder_name}_split")
@@ -39,18 +39,18 @@ def split_audio_file(file_path: str, duration: int, start_time: int = 0):
     if not os.path.exists(output_dir):
         os.makedirs(output_dir, exist_ok=True)
     
-    # Định dạng tên file đầu ra đưa vào trong thư mục _split: tenfile_split.mp3
-    output_path = os.path.join(output_dir, f"{base_name}_split{ext}")
+    # Định dạng tên file đầu ra: chude_1234_clip_1.mp3
+    output_path = os.path.join(output_dir, f"{base_name}_clip_{clip_index}{ext}")
     
     # Nếu file đã được cắt rồi thì bỏ qua không cắt lại nữa
     if os.path.exists(output_path) and os.path.getsize(output_path) > 0:
-        print(f"⏩ Đã cắt rồi: {base_name}_split{ext} (Bỏ qua)")
+        print(f"⏩ Đã cắt rồi: {base_name}_clip_{clip_index}{ext} (Bỏ qua)")
         return
 
-    print(f"✂️  Đang cắt lấy {duration} giây bản split (từ giây {start_time}) file: {base_name}{ext}...")
+    print(f"✂️  Đang cắt lấy {duration}s bảng clip {clip_index} (từ phút {start_time//60}) file: {base_name}{ext}...")
     
     try:
-        # Lệnh cắt ffmpeg siêu tốc (copy codec không re-encode), lấy chính xác 10 phút Phần Lõi
+        # Lệnh cắt ffmpeg siêu tốc (copy codec không re-encode), lấy chuẩn thời điểm
         subprocess.run(
             ["ffmpeg", "-y", "-ss", str(start_time), "-i", file_path, "-t", str(duration), "-c", "copy", output_path],
             stdout=subprocess.DEVNULL,
@@ -60,17 +60,13 @@ def split_audio_file(file_path: str, duration: int, start_time: int = 0):
         
         # Kiểm tra file output có bị 0KB (lỗi ffmpeg xuất file rỗng)
         if os.path.exists(output_path) and os.path.getsize(output_path) == 0:
-            print(f"   ❌ Lỗi cắt: File {base_name}_split{ext} sinh ra bị 0KB. Đã chuyển vào thùng rác!")
+            print(f"   ❌ Lỗi cắt: File {base_name}_clip_{clip_index}{ext} sinh ra bị 0KB. Đã xóa!")
             os.remove(output_path)
         else:
-            # Tạm thời khóa tính năng xóa file gốc để bạn có thể test lại nhiều lần nếu muốn
-            # Mở comment dòng dưới đây nếu bạn muốn thực sự xóa file gốc để tiết kiệm ổ cứng
-            # os.remove(file_path)
-            print(f"   ✅ Đã cắt xong bản demo và LƯU LẠI file gốc (chưa xóa)!")
-        
+            print(f"   ✅ Đã cắt clip {clip_index} thành công!")
+            
     except subprocess.CalledProcessError as e:
         print(f"   ❌ Lỗi khi cắt file {file_path}. FFmpeg error.")
-        # Xóa file lỗi rác (nếu ffmpeg đã lỡ tạo ra) để không đưa vào thư mục split
         if os.path.exists(output_path):
             os.remove(output_path)
 
@@ -99,17 +95,17 @@ if __name__ == "__main__":
         duration = get_audio_duration(file_path)
         file_size_kb = os.path.getsize(file_path) / 1024
         
-        # Bỏ qua các file rác quá ngắn < 3 phút (180s) hoặc file nhỏ < 4000KB (~4MB)
-        if duration >= 180 and file_size_kb >= 4000:
-            # Thuật toán đi tìm "Phần Lõi" (Core Segment) của Podcast tránh Intro/Quảng cáo
-            if duration <= DEMO_DURATION_SECONDS:
-                start_time = 0
-            else:
-                # Bỏ qua 1/3 thời lượng đầu tiên, nhưng tối đa nhảy cóc 15 phút (900 giây)
-                skip_time = min(900, int(duration / 3))
-                start_time = skip_time
-                
-            split_audio_file(file_path, duration=DEMO_DURATION_SECONDS, start_time=start_time)
-            processed_count += 1
+        # Tiêu chuẩn chất lượng: Audio gốc phải dài ít nhất 7 phút (420s) và lớn hơn 4MB
+        if duration >= 420 and file_size_kb >= 4000:
+            # Bỏ qua 10% đoạn đầu tiên hoặc tối đa 3 phút (tránh intro, lặp lời chào)
+            # Lấy 1 đoạn dài (ví dụ: 15 phút) để có đủ text cho mô hình NLP đọc "Peak"
+            start_point = min(180, int(duration * 0.10))
             
-    print(f"\n🎉 HOÀN TẤT! Đã xử lý lấy mẫu demo {processed_count} file âm thanh.")
+            # Đảm bảo phần cắt không vượt quá tổng thời lượng audio
+            chunk_length = min(MAX_CHUNK_DURATION, int(duration - start_point))
+            
+            if chunk_length > 60: # Ít nhất đoạn này phải dài hơn 1 phút mới đáng xử lý
+                split_audio_file(file_path, duration=chunk_length, start_time=start_point, clip_index=1)
+                processed_count += 1
+            
+    print(f"\n🎉 HOÀN TẤT! Đã tiền xử lý {processed_count} tệp (bỏ qua intro và giới hạn độ dài).")
